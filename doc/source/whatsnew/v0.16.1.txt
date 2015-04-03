@@ -75,7 +75,7 @@ Bug Fixes
 
 
 
-
+- Bug in ``factorize`` when lists of equal-length tuples were passed (:issue:`9454`)
 
 - Bug in ``Series.quantile`` on empty Series of type ``Datetime`` or ``Timedelta`` (:issue:`9675`)
 - Bug in ``where`` causing incorrect results when upcasting was required (:issue:`9731`)

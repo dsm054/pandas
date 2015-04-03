@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 import re
+import itertools
 from datetime import datetime, timedelta
 import numpy as np
 import pandas.compat as compat
@@ -13,7 +14,6 @@ from pandas.tseries.common import is_datetimelike
 from pandas import Series, Index, Int64Index, DatetimeIndex, TimedeltaIndex, PeriodIndex, Timedelta
 import pandas.tslib as tslib
 import nose
-
 import pandas.util.testing as tm
 
 class CheckStringMixin(object):
@@ -600,6 +600,25 @@ class TestIndexOps(Ops):
                 expected = o[5:].append(o[:5])
                 self.assertTrue(uniques.equals(expected))
 
+    def test_factorize_tuples(self):
+        # GH 9454
+
+        # example where array construction caused problems
+        labels, uniques = pd.factorize([(1, 1), (1, 2), (0, 0), (1, 2)], sort=False)
+        expected_labels = np.array([0,1,2,1])
+        expected_uniques = np.empty(3, dtype=object)
+        expected_uniques[:] = [(1,1), (1,2), (0,0)]
+        self.assert_numpy_array_equal(labels, expected_labels)
+        self.assert_numpy_array_equal(uniques, expected_uniques)
+
+        # test various tuple arrangements
+        tuples = [tuple(range(i,i+j)) for i in range(3) for j in range(1,4)]
+        for w in range(len(tuples)+1):
+            for tups in itertools.combinations(tuples, w):
+                factored = pd.factorize(tups, sort=False)
+                expected_labels = np.arange(w)
+                self.assert_numpy_array_equal(factored[0], expected_labels)
+        
     def test_duplicated_drop_duplicates(self):
         # GH 4060
         for original in self.objs:
