@@ -892,6 +892,14 @@ def test_nunique_with_timegrouper():
     tm.assert_series_equal(result, expected)
 
 
+def test_nunique_preserves_column_level_names():
+    # GH 23222
+    test = pd.DataFrame([1, 2, 3],
+                        columns=pd.Index(['A'], name="level_0"))
+    result = test.groupby([0, 0, 0]).nunique()
+    tm.assert_index_equal(test.columns, result.columns)
+
+
 # count
 # --------------------------------
 
