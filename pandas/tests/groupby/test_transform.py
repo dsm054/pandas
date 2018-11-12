@@ -282,6 +282,30 @@ def test_transform_casting():
     assert is_timedelta64_dtype(result.DATETIME.dtype)
 
 
+def test_transform_idxmin_idxmax_date():
+    df = pd.DataFrame({"price": [3, 1, 2], "group": [1, 1, 2]},
+                      index=pd.date_range("2018-01-01", "2018-01-03"))
+
+    max_manual = pd.Series(pd.to_datetime(["2018-01-01", "2018-01-01",
+                                           "2018-01-03"]), index=df.index,
+                           name='price')
+    min_manual = pd.Series(pd.to_datetime(["2018-01-02", "2018-01-02",
+                                           "2018-01-03"]), index=df.index,
+                           name='price')
+
+    max_via_string = df.groupby("group")["price"].transform("idxmax")
+    max_via_method = df.groupby("group")["price"].transform(pd.Series.idxmax)
+
+    min_via_string = df.groupby("group")["price"].transform("idxmin")
+    min_via_method = df.groupby("group")["price"].transform(pd.Series.idxmin)
+
+    assert_series_equal(max_manual, max_via_string)
+    assert_series_equal(max_manual, max_via_method)
+
+    assert_series_equal(min_manual, min_via_string)
+    assert_series_equal(min_manual, min_via_method)
+
+
 def test_transform_multiple(ts):
     grouped = ts.groupby([lambda x: x.year, lambda x: x.month])
 

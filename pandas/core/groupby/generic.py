@@ -528,15 +528,19 @@ class NDFrameGroupBy(GroupBy):
         if isinstance(func, compat.string_types):
             if func in base.cython_transforms:
                 # cythonized transform
+                print("cython transform!")
                 return getattr(self, func)(*args, **kwargs)
             else:
+                print("cython and merge transform")
                 # cythonized aggregation and merge
                 result = getattr(self, func)(*args, **kwargs)
         else:
+            print("not cython")
             return self._transform_general(func, *args, **kwargs)
 
         # a reduction transform
         if not isinstance(result, DataFrame):
+            print("reduction")
             return self._transform_general(func, *args, **kwargs)
 
         obj = self._obj_with_exclusions
@@ -553,8 +557,11 @@ class NDFrameGroupBy(GroupBy):
         """
         # if there were groups with no observations (Categorical only?)
         # try casting data to original dtype
+        print("func_nm", func_nm)
+        print("transform should cast")
         cast = self._transform_should_cast(func_nm)
 
+        
         # for each col, reshape to to size of original frame
         # by take operation
         ids, _, ngroup = self.grouper.group_info
@@ -918,12 +925,15 @@ class SeriesGroupBy(GroupBy):
         if isinstance(func, compat.string_types):
             if func in base.cython_transforms:
                 # cythonized transform
+                print("cython")
                 return getattr(self, func)(*args, **kwargs)
             else:
                 # cythonized aggregation and merge
+                print("cython and merge")
                 return self._transform_fast(
                     lambda: getattr(self, func)(*args, **kwargs), func)
 
+        print("reg")
         # reg transform
         klass = self._selected_obj.__class__
         results = []
@@ -961,11 +971,14 @@ class SeriesGroupBy(GroupBy):
         if isinstance(func, compat.string_types):
             func = getattr(self, func)
 
+        print("func is", func, 'func_nm is', func_nm)
         ids, _, ngroup = self.grouper.group_info
         cast = self._transform_should_cast(func_nm)
         out = algorithms.take_1d(func().values, ids)
+        print("out", out)
         if cast:
             out = self._try_cast(out, self.obj)
+        print('cast', cast)
         return Series(out, index=self.obj.index, name=self.obj.name)
 
     def filter(self, func, dropna=True, *args, **kwargs):  # noqa
